@@ -13,8 +13,9 @@
 
 
 
-# Create a noisy data file ----
-if(!dir.exists("processingThings/")){dir.create("processingThings")}
+# Create a noisy data file in clean processing directory ----
+if(dir.exists("processingThings/")){unlink('processingThings', recursive=TRUE)}
+dir.create("processingThings")
 library(MSnbase)
 writeSingleFile <- function(ms_data_frame, outfile, colnames=c("rt", "mz", "intensity")){
   ms_data_frame$file <- 1
