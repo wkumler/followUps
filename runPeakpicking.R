@@ -87,7 +87,7 @@ varNoiseMaker <- function(noise, total_width=1000, leaveNaughts=TRUE){
 }
 noise_df <- do.call(rbind, lapply(seq(0, 10000-10, 10), varNoiseMaker, leaveNaughts=TRUE))
 writeSingleFile(noise_df, outfile = "processingThings/noisy_data.mzML")
-message("Remember to convert that to .abf, now!")
+stop("Remember to convert that to .abf, now!")
 
 
 # XCMS things ----
