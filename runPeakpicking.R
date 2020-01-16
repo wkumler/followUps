@@ -86,7 +86,7 @@ varNoiseMaker <- function(noise, total_width=1000, leaveNaughts=TRUE){
 }
 noise_df <- do.call(rbind, lapply(seq(0, 10000-10, 10), varNoiseMaker, leaveNaughts=TRUE))
 writeSingleFile(noise_df, outfile = "processingThings/noisy_data.mzML")
-
+message("Remember to convert that to .abf, now!")
 
 
 # XCMS things ----
@@ -99,72 +99,6 @@ xcms_peaks <- as.data.frame(chromPeaks(xcms_output))
 xcms_peaks <- xcms_peaks[order(xcms_peaks$mz),]
 write.csv(xcms_peaks, file = "xcms_peaks.csv")
 
-
-
-# MSDIAL things ----
-if(!file.exists("processingThings/noisy_data.abf")){stop("Remember to convert to abf!")}
-# file.remove(setdiff(list.files("processingThings/", full.names = T), 
-#                     list.files("processingThings/", full.names = T, pattern = ".abf")))
-msdial_param_maker <- function(){
-  writeLines('#Data type
-MS1 data type: Centroid
-MS2 data type: Centroid
-Ion mode: Positive
-DIA file: 
-
-#Data collection parameters
-Retention time begin: 0
-Retention time end: 100
-Mass range begin: 0
-Mass range end: 2000
-
-#Centroid parameters
-MS1 tolerance for centroid: 0.01
-MS2 tolerance for centroid: 0.05
-
-#Peak detection parameters
-Smoothing method: LinearWeightedMovingAverage
-Smoothing level: 3
-Minimum peak width: 5
-Minimum peak height: 1
-Mass slice width: 0.0001
-
-#Deconvolution parameters
-Sigma window value: 0.5
-Amplitude cut off: 0
-
-#Adduct list
-Adduct list: [M+H]+
-
-#MSP file and MS/MS identification setting
-#MSP file: D:\\Msdial-ConsoleApp-Demo files\\Msdial-ConsoleApp-Demo files for DDA\\MSDIAL-LipidDB-VS23.msp
-Retention time tolerance for identification: 4
-Accurate ms1 tolerance for identification: 0.025
-Accurate ms2 tolerance for identification: 0.25
-Identification score cut off: 70
-
-#Text file and post identification (retention time and accurate mass based) setting
-#Text file: D:\\Msdial-ConsoleApp-Demo files\\Msdial-ConsoleApp-Demo files for DDA\\Lipid_Nega_IS_PostIdentification_vs1.txt
-Retention time tolerance for post identification: 0.5
-Accurate ms1 tolerance for post identification: 0.01
-Post identification score cut off: 85
-
-#Alignment parameters setting
-Retention time tolerance for alignment: 0.05
-MS1 tolerance for alignment: 0.025
-Retention time factor for alignment: 0.5
-MS1 factor for alignment: 0.5
-Peak count filter: 0
-QC at least filter: True
-', con = "G:/My Drive/followUps/processingThings/msdial_params_auto.txt")
-}
-msdial_param_maker()
-system('"C:/Program Files/MSDIAL ver 4.12/MsdialConsoleApp.exe" lcmsdda 
-       -i "G:/My Drive/followUps/processingThings" 
-       -o "G:/My Drive/followUps/processingThings" 
-       -m "G:/My Drive/followUps/processingThings/msdial_params_auto.txt"')
-write.csv(read.csv("processingThings/noisy_data.msdial", sep = "\t"), 
-          file = "msdial_peaks.csv")
 
 
 # MZmine things ----
@@ -283,6 +217,72 @@ file.create("G:/My Drive/followUps/mzmine_peaks.csv")
 system(paste('"C:/Program Files/MZmine-2.53-Windows/startMZmine-Windows.bat"',
              '"G:/My Drive/followUps/processingThings/mzmine_params_auto.xml"'),
        show.output.on.console = TRUE)
+
+
+
+# MSDIAL things ----
+if(!file.exists("processingThings/noisy_data.abf")){stop("Remember to convert to abf!")}
+file.remove("processingThings/noisy_data.mzML")
+msdial_param_maker <- function(){
+  writeLines('#Data type
+MS1 data type: Centroid
+MS2 data type: Centroid
+Ion mode: Positive
+DIA file: 
+
+#Data collection parameters
+Retention time begin: 0
+Retention time end: 100
+Mass range begin: 0
+Mass range end: 2000
+
+#Centroid parameters
+MS1 tolerance for centroid: 0.01
+MS2 tolerance for centroid: 0.05
+
+#Peak detection parameters
+Smoothing method: LinearWeightedMovingAverage
+Smoothing level: 3
+Minimum peak width: 5
+Minimum peak height: 1
+Mass slice width: 0.0001
+
+#Deconvolution parameters
+Sigma window value: 0.5
+Amplitude cut off: 0
+
+#Adduct list
+Adduct list: [M+H]+
+
+#MSP file and MS/MS identification setting
+#MSP file: D:\\Msdial-ConsoleApp-Demo files\\Msdial-ConsoleApp-Demo files for DDA\\MSDIAL-LipidDB-VS23.msp
+Retention time tolerance for identification: 4
+Accurate ms1 tolerance for identification: 0.025
+Accurate ms2 tolerance for identification: 0.25
+Identification score cut off: 70
+
+#Text file and post identification (retention time and accurate mass based) setting
+#Text file: D:\\Msdial-ConsoleApp-Demo files\\Msdial-ConsoleApp-Demo files for DDA\\Lipid_Nega_IS_PostIdentification_vs1.txt
+Retention time tolerance for post identification: 0.5
+Accurate ms1 tolerance for post identification: 0.01
+Post identification score cut off: 85
+
+#Alignment parameters setting
+Retention time tolerance for alignment: 0.05
+MS1 tolerance for alignment: 0.025
+Retention time factor for alignment: 0.5
+MS1 factor for alignment: 0.5
+Peak count filter: 0
+QC at least filter: True
+', con = "G:/My Drive/followUps/processingThings/msdial_params_auto.txt")
+}
+msdial_param_maker()
+system('"C:/Program Files/MSDIAL ver 4.12/MsdialConsoleApp.exe" lcmsdda 
+       -i "G:/My Drive/followUps/processingThings" 
+       -o "G:/My Drive/followUps/processingThings" 
+       -m "G:/My Drive/followUps/processingThings/msdial_params_auto.txt"')
+write.csv(read.csv("processingThings/noisy_data.msdial", sep = "\t"), 
+          file = "msdial_peaks.csv")
 
 
 # Spacer ----
