@@ -3,5 +3,5 @@
 .RData
 .Ruserdata
 *.Rproj
-msdialProcessing/
+processingThings/
 *.mzML
