@@ -3,6 +3,7 @@
 
 # Setup things ----
 library(pbapply)
+library(data.table)
 
 # Functions ----
 grabSingleFileData <- function(filename, rt_lim=NULL){
@@ -65,17 +66,18 @@ msdialQscoreCalculator <- function(peak_row, peak_data, raw_data, ppm){
 }
 mzmineQscoreCalculator <- function(peak_row, peak_data, raw_data, ppm){
   peak_row_data <- peak_data[peak_row, ]
-  eic <- subset(raw_data, raw_data$rt>=peak_row_data$Peak.RT.start*60&
-                  raw_data$rt<=peak_row_data$Peak.RT.end*60&
-                  #raw_data$mz>=peak_row_data$Peak.m.z.min&
-                  #raw_data$mz<=peak_row_data$Peak.m.z.max
-                  raw_data$mz>=peak_row_data$row.m.z*(1-ppm/1000000)&
-                  raw_data$mz<=peak_row_data$row.m.z*(1+ppm/1000000))
+  eic <- raw_data[raw_data$rt>=peak_row_data$Peak.RT.start*60&
+                    raw_data$rt<=peak_row_data$Peak.RT.end*60&
+                    #raw_data$mz>=peak_row_data$Peak.m.z.min&
+                    #raw_data$mz<=peak_row_data$Peak.m.z.max
+                    raw_data$mz>=peak_row_data$row.m.z*(1-ppm/1000000)&
+                    raw_data$mz<=peak_row_data$row.m.z*(1+ppm/1000000),]
   return(qscoreCalculator(eic))
 }
 
 # Raw data extraction ----
 raw_data <- grabSingleFileData(filename = "noisy_data.mzML")
+raw_data_dt <- as.data.table(raw_data)
 
 
 # XCMS things ----
