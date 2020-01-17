@@ -52,30 +52,31 @@ qscoreCalculator <- function(eic){
 xcmsQscoreCalculator <- function(peak_row, peak_data, raw_data){
   #Extract the relevant EIC
   peak_row_data <- peak_data[peak_row, ]
-  eic <- subset(raw_data, raw_data$rt>=peak_row_data$rtmin&raw_data$rt<=peak_row_data$rtmax&
-                  raw_data$mz>=peak_row_data$mzmin&raw_data$mz<=peak_row_data$mzmax)
+  eic <- raw_data[raw_data$rt>=peak_row_data$rtmin&
+                  raw_data$rt<=peak_row_data$rtmax&
+                  raw_data$mz>=peak_row_data$mzmin&
+                  raw_data$mz<=peak_row_data$mzmax,]
   return(qscoreCalculator(eic))
 }
 msdialQscoreCalculator <- function(peak_row, peak_data, raw_data, ppm){
   peak_row_data <- peak_data[peak_row, ]
-  eic <- subset(raw_data, raw_data$rt>=peak_row_data$RT.left.min.*60&
+  eic <- raw_data[raw_data$rt>=peak_row_data$RT.left.min.*60&
                   raw_data$rt<=peak_row_data$RT.right..min.*60&
                   raw_data$mz>=peak_row_data$Precursor.m.z*(1-ppm/1000000)&
-                  raw_data$mz<=peak_row_data$Precursor.m.z*(1+ppm/1000000))
+                  raw_data$mz<=peak_row_data$Precursor.m.z*(1+ppm/1000000),]
   return(qscoreCalculator(eic))
 }
 mzmineQscoreCalculator <- function(peak_row, peak_data, raw_data, ppm){
   peak_row_data <- peak_data[peak_row, ]
   eic <- raw_data[raw_data$rt>=peak_row_data$Peak.RT.start*60&
                     raw_data$rt<=peak_row_data$Peak.RT.end*60&
-                    #raw_data$mz>=peak_row_data$Peak.m.z.min&
-                    #raw_data$mz<=peak_row_data$Peak.m.z.max
                     raw_data$mz>=peak_row_data$row.m.z*(1-ppm/1000000)&
                     raw_data$mz<=peak_row_data$row.m.z*(1+ppm/1000000),]
   return(qscoreCalculator(eic))
 }
 
 # Raw data extraction ----
+start_time <- Sys.time()
 raw_data <- grabSingleFileData(filename = "noisy_data.mzML")
 raw_data_dt <- as.data.table(raw_data)
 
@@ -86,6 +87,8 @@ head(xcms_peaks)
 plot(xcms_peaks$mz, xcms_peaks$sn)
 xcms_qscores <- pbsapply(seq_len(nrow(xcms_peaks)), xcmsQscoreCalculator,
                        peak_data=xcms_peaks, raw_data=raw_data)
+# xcms_qscores <- pbsapply(seq_len(nrow(xcms_peaks)), xcmsQscoreCalculator,
+#                          peak_data=xcms_peaks, raw_data=raw_data_dt)
 plot(xcms_peaks$mz, xcms_qscores)
 plot(xcms_peaks$mz[xcms_peaks$sn<2000], xcms_peaks$sn[xcms_peaks$sn<2000])
 plot(xcms_peaks$mz[xcms_qscores>1], xcms_qscores[xcms_qscores>1])
@@ -96,6 +99,8 @@ head(msdial_peaks[-(ncol(msdial_peaks)-1)])
 plot(msdial_peaks$Precursor.m.z, msdial_peaks$S.N)
 msdial_qscores <- pbsapply(seq_len(nrow(msdial_peaks)), msdialQscoreCalculator,
                            peak_data=msdial_peaks, raw_data=raw_data, ppm=2.5)
+# msdial_qscores <- pbsapply(seq_len(nrow(msdial_peaks)), msdialQscoreCalculator,
+#                            peak_data=msdial_peaks, raw_data=raw_data_dt, ppm=2.5)
 plot(msdial_peaks$Precursor.m.z, msdial_qscores)
 plot(msdial_peaks$Precursor.m.z[msdial_qscores>1], msdial_qscores[msdial_qscores>1])
 
@@ -106,9 +111,11 @@ names(mzmine_peaks) <- gsub("noisy_data.mzML.", "", names(mzmine_peaks))
 head(mzmine_peaks)
 mzmine_qscores <- pbsapply(seq_len(nrow(mzmine_peaks)), mzmineQscoreCalculator,
                            peak_data=mzmine_peaks, raw_data=raw_data, ppm=2.5)
+# mzmine_qscores <- pbsapply(seq_len(nrow(mzmine_peaks)), mzmineQscoreCalculator,
+#                            peak_data=mzmine_peaks, raw_data=raw_data_dt, ppm=2.5)
 plot(mzmine_peaks$row.m.z, mzmine_qscores)
 plot(mzmine_peaks$row.m.z[mzmine_qscores>1], mzmine_qscores[mzmine_qscores>1])
-
+Sys.time()-start_time
 
 
 # Interpretation ----
@@ -164,4 +171,4 @@ peakCheck <- function(mzr, df=raw_data, mars=TRUE){
   plot(eic$rt, eic$int, type="l", lwd=2, ylab=ylabel, yaxt=yaxtype, xaxt=xaxtype)
   if(!mars){par(mar=c(4.1, 4.1, 2.1, 2.1))}
 }
-peakCheck(100.329)
+peakCheck(max(possible_peaks[which(xcms_found&msdial_found&mzmine_found)]))
