@@ -215,7 +215,7 @@ mzmine_param_maker <- function(){
 ', con="G:/My Drive/followUps/processingThings/mzmine_params_auto.xml")
 }
 mzmine_param_maker()
-file.create("G:/My Drive/followUps/mzmine_peaks.csv")
+file.create("mzmine_peaks.csv")
 system(paste('"C:/Program Files/MZmine-2.53-Windows/startMZmine-Windows.bat"',
              '"G:/My Drive/followUps/processingThings/mzmine_params_auto.xml"'),
        show.output.on.console = TRUE)
